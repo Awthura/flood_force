@@ -2,6 +2,7 @@ import pygame as pg
 import sys
 from settings import *
 from sprites import *
+from controller import *
 from tilemap import *
 from grid import Grid
 from simulation import WaterSimulation

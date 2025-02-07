@@ -63,14 +63,16 @@ class WaterOverlay:
             base_color = WATER_BLUE
             alpha = int(255 * tile.water_level)
             water_surface = pg.Surface((TILESIZE, water_height), pg.SRCALPHA)
-            pg.draw.rect(water_surface, (*base_color, alpha), 
+            water_color = (*base_color, alpha)  # Create RGBA tuple
+            pg.draw.rect(water_surface, water_color, 
                         (0, 0, TILESIZE, water_height))
             surface.blit(water_surface, water_rect)
             
             # Warning indicator for high water
             if tile.water_level > FLOOD_THRESHOLD:
                 warning_surface = pg.Surface((TILESIZE, TILESIZE), pg.SRCALPHA)
-                pg.draw.rect(warning_surface, (255, 0, 0, self.warning_alpha), 
+                warning_color = (255, 0, 0, min(255, self.warning_alpha))  # Ensure alpha doesn't exceed 255
+                pg.draw.rect(warning_surface, warning_color, 
                             warning_surface.get_rect())
                 surface.blit(warning_surface, tile.rect)
 

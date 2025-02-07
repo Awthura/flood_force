@@ -7,6 +7,7 @@ from simulation import *
 from weather_effects import *
 from ui import UI
 from game_loop import GameLoop
+from controller import *
 
 class Game:
     def __init__(self):
@@ -54,11 +55,18 @@ class Game:
         self.infrastructure.empty()
         self.ui_elements.empty()
         
-        # Create grid
+        # Create grid and initialize houses
         self.grid = Grid(self, GRID_WIDTH, GRID_HEIGHT)
+        self.grid.place_houses()  # Place houses right after grid creation
+        
+        # Initialize other game components
         self.water_sim = WaterSimulation(self, self.grid)
         self.resources = STARTING_RESOURCES
         self.state = PLANNING
+        
+        # Reinitialize mouse controller and toolbar
+        self.mouse_controller = MouseController(self)
+        
         print(f"Game state changed to: {self.state}")  # Debug print
 
     def update(self):

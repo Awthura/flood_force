@@ -1,6 +1,7 @@
 import pygame as pg
 from settings import *
 from sprites import Tile
+import random
 
 class Grid:
     def __init__(self, game, width, height):
@@ -107,6 +108,34 @@ class Grid:
         # Apply new water levels
         for (x, y), level in new_water_levels.items():
             self.tiles[y][x].update_water_level(level)
+    
+    def place_houses(self):
+        """Place 3 random houses on land tiles, avoiding river bank tiles.
+        
+        This method finds safe locations for houses by:
+        1. Identifying land tiles that are at least 2 tiles away from the river
+        2. Randomly selecting 3 of these tiles to place houses
+        3. Marking the selected tiles as house locations
+        """
+        available_tiles = []
+        river_x = self.width // 3  # River position is one-third from the left
+        
+        # Collect all valid land tiles that are at least 2 tiles away from the river
+        for y in range(self.height):
+            for x in range(river_x + 2, self.width):  # Start 2 tiles right of river
+                tile = self.tiles[y][x]  # Fixed: Removed extra self.grid reference
+                if tile.tile_type == LAND:
+                    available_tiles.append(tile)
+        
+        # Only place houses if we have enough valid tiles
+        if len(available_tiles) >= 3:
+            house_tiles = random.sample(available_tiles, 3)
+            for tile in house_tiles:
+                tile.is_house = True
+                tile.update_appearance()
+                print(f"Placed house at ({tile.x}, {tile.y})")  # Debug info
+        else:
+            print("Warning: Not enough valid tiles for house placement")
 
     def apply_infrastructure_effects(self):
         """Update grid based on infrastructure effects"""
@@ -126,3 +155,5 @@ class Grid:
                         elif infra.infra_type == VEGETATION:
                             # Increase water absorption
                             tile.update_water_level(-0.1 * infra.efficiency)
+
+    

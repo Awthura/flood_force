@@ -4,124 +4,139 @@ from settings import *
 
 class WaterSimulation:
     def __init__(self, game, grid):
+        """Initialize water simulation with game and grid references.
+        
+        The simulation manages water flow from the river (located at 1/3 of grid width)
+        eastward, applying protection rules from barriers and vegetation.
+        """
         self.game = game
         self.grid = grid
-        self.rain_intensity = 0
-        self.turn_counter = 0
+        
+        # Define weather phases for varying rain intensity
         self.weather_phases = [
-            {'rain': 0.1, 'duration': 3},    # Light rain
-            {'rain': 0.3, 'duration': 2},    # Medium rain
-            {'rain': 0.5, 'duration': 1},    # Heavy rain
+            {'rain': 0.2, 'duration': 5},  # Light rain
+            {'rain': 0.3, 'duration': 3},  # Medium rain
+            {'rain': 0.4, 'duration': 2}   # Heavy rain
         ]
         self.current_phase = 0
 
     def update(self):
-        """Main update loop for water simulation"""
+        """Main update loop for weather simulation."""
         if self.game.state == WEATHER:
-            self.turn_counter += 1
             self.simulate_rain()
             self.simulate_water_flow()
             self.check_flooding()
 
     def simulate_rain(self):
-        """Add water to tiles based on current rain intensity"""
+        """Add water from rainfall and check for flooding."""
         current_weather = self.weather_phases[self.current_phase]
+        river_x = self.grid.width // 3  # Calculate river position
         
         for y in range(self.grid.height):
-            for x in range(self.grid.width):
+            for x in range(river_x + 1, self.grid.width):  # Start right of river
                 tile = self.grid.tiles[y][x]
-                # Add water based on rain intensity and randomness
-                rain_amount = current_weather['rain'] * random.uniform(0.8, 1.2)
-                tile.update_water_level(rain_amount)
-
-        # Check if we should move to next weather phase
-        if self.turn_counter % current_weather['duration'] == 0:
-            self.current_phase = (self.current_phase + 1) % len(self.weather_phases)
+                
+                if not self.is_protected(tile):
+                    # Apply rain effect
+                    rain_amount = current_weather['rain']
+                    tile.water_level = min(1.0, tile.water_level + rain_amount)
+                    
+                    # Check for flooding
+                    if tile.water_level >= FLOOD_THRESHOLD and tile.tile_type == LAND:
+                        tile.was_land = True
+                        tile.tile_type = WATER
+                        print(f"Tile at ({x}, {y}) flooded by rain")
+                    
+                    tile.update_appearance()
 
     def simulate_water_flow(self):
-        """Simulate water flowing between tiles"""
-        # Create a buffer for new water levels
-        new_water_levels = {}
+        """Simulate water flowing from west to east, starting from the river."""
+        river_x = self.grid.width // 3
         
-        # Calculate water distribution
         for y in range(self.grid.height):
-            for x in range(self.grid.width):
+            water_level = 1.0  # Start with full water at river
+            
+            for x in range(river_x + 1, self.grid.width):
                 tile = self.grid.tiles[y][x]
-                if tile.water_level > 0:
-                    self.distribute_water(tile, new_water_levels)
-        
-        # Apply new water levels
-        for pos, level in new_water_levels.items():
-            x, y = pos
-            self.grid.tiles[y][x].update_water_level(level - self.grid.tiles[y][x].water_level)
-
-    def distribute_water(self, tile, new_water_levels):
-        """Calculate water distribution for a single tile"""
-        neighbors = self.grid.get_neighbors(tile)
-        if not neighbors:
-            return
-
-        # Get current position's water level
-        current_pos = (tile.x, tile.y)
-        current_level = new_water_levels.get(current_pos, tile.water_level)
-
-        for neighbor in neighbors:
-            neighbor_pos = (neighbor.x, neighbor.y)
-            neighbor_level = new_water_levels.get(neighbor_pos, neighbor.water_level)
-
-            # Calculate water flow based on height difference and infrastructure
-            height_diff = tile.elevation - neighbor.elevation
-            if height_diff > 0:
-                # Water flows downhill
-                flow_amount = min(
-                    current_level * 0.3,  # Max 30% can flow at once
-                    height_diff * 0.5,    # Height difference factor
-                    1.0 - neighbor_level  # Can't exceed maximum water level
-                )
                 
-                # Reduce flow if infrastructure present
-                if neighbor.has_infrastructure:
-                    infra = next((sprite for sprite in self.game.infrastructure 
-                                if sprite.tile == neighbor), None)
-                    if infra:
-                        flow_amount *= (1 - infra.efficiency)
+                if self.is_protected(tile):
+                    # Protected tiles become/stay dry
+                    water_level = 0.0
+                    if tile.tile_type == WATER and hasattr(tile, 'was_land'):
+                        tile.tile_type = LAND
+                        tile.water_level = 0.0
+                        print(f"Protected tile at ({x}, {y}) restored to land")
+                else:
+                    # Unprotected tiles receive water flow
+                    tile.water_level = water_level
+                    water_level *= 0.9  # Water level gradually decreases
+                    
+                    if tile.water_level >= FLOOD_THRESHOLD and tile.tile_type == LAND:
+                        tile.was_land = True
+                        tile.tile_type = WATER
+                        print(f"Tile at ({x}, {y}) flooded by water flow")
+                
+                tile.update_appearance()
 
-                # Update water levels
-                new_water_levels[current_pos] = current_level - flow_amount
-                new_water_levels[neighbor_pos] = neighbor_level + flow_amount
+    def is_protected(self, tile):
+        """Check if a tile is protected by barriers or vegetation.
+        
+        A tile is protected if:
+        1. There is a barrier directly to its left
+        2. There are two consecutive vegetation tiles to its left
+        """
+        # Check for barrier protection
+        left_tile = self.grid.get_tile(tile.x - 1, tile.y)
+        if left_tile and left_tile.has_infrastructure:
+            left_infra = next((sprite for sprite in self.game.infrastructure 
+                             if sprite.tile == left_tile), None)
+            if left_infra and left_infra.infra_type == BARRIER:
+                return True
+
+        # Check for consecutive vegetation protection
+        if left_tile and left_tile.has_infrastructure:
+            far_left_tile = self.grid.get_tile(tile.x - 2, tile.y)
+            if far_left_tile and far_left_tile.has_infrastructure:
+                left_infra = next((sprite for sprite in self.game.infrastructure 
+                                 if sprite.tile == left_tile), None)
+                far_left_infra = next((sprite for sprite in self.game.infrastructure 
+                                     if sprite.tile == far_left_tile), None)
+                if (left_infra and left_infra.infra_type == VEGETATION and 
+                    far_left_infra and far_left_infra.infra_type == VEGETATION):
+                    return True
+        
+        return False
 
     def check_flooding(self):
-        """Check for flooding conditions and update game state"""
+        """Check game end conditions based on house safety and flood percentage."""
         flood_count = 0
-        total_tiles = 0
-        
-        for y in range(self.grid.height):
-            for x in range(self.grid.width):
-                tile = self.grid.tiles[y][x]
-                if tile.tile_type == LAND:
-                    total_tiles += 1
-                    if tile.water_level > FLOOD_THRESHOLD:
-                        flood_count += 1
-        
+        total_land_tiles = 0
+        houses_flooded = False
+
+        # Check house status
+        for row in self.grid.tiles:
+            for tile in row:
+                if hasattr(tile, 'is_house') and tile.is_house:
+                    if tile.tile_type == WATER:
+                        houses_flooded = True
+                        print(f"House flooded at ({tile.x}, {tile.y})")
+                        break
+
         # Calculate flood percentage
-        flood_percentage = (flood_count / total_tiles) * 100 if total_tiles > 0 else 0
+        for row in self.grid.tiles:
+            for tile in row:
+                if tile.tile_type == LAND or hasattr(tile, 'was_land'):
+                    total_land_tiles += 1
+                    if tile.tile_type == WATER and hasattr(tile, 'was_land'):
+                        flood_count += 1
+
+        # Update game state
+        self.game.flood_percentage = (flood_count / total_land_tiles * 100) if total_land_tiles > 0 else 0
+        print(f"Current flood percentage: {self.game.flood_percentage}%")
         
-        # Update game state based on flooding
-        if flood_percentage > MAX_FLOOD_PERCENTAGE:
+        if houses_flooded or self.game.flood_percentage > MAX_FLOOD_PERCENTAGE:
+            print("Game Over: Houses flooded or flood percentage too high")
             self.game.state = GAME_OVER
-        elif self.turn_counter >= MAX_TURNS:
-            self.game.state = ASSESSMENT
-
-    def reset(self):
-        """Reset simulation to initial state"""
-        self.turn_counter = 0
-        self.current_phase = 0
-        self.clear_water()
-
-    def clear_water(self):
-        """Remove all water from non-water tiles"""
-        for y in range(self.grid.height):
-            for x in range(self.grid.width):
-                tile = self.grid.tiles[y][x]
-                if tile.tile_type != WATER:
-                    tile.water_level = 0
+        elif self.game.flood_percentage <= MAX_FLOOD_PERCENTAGE:
+            print("Victory achieved!")
+            self.game.state = VICTORY

@@ -26,12 +26,13 @@ UI_WARNING = RED
 # Grid settings
 GRID_WIDTH = 10
 GRID_HEIGHT = 8
+VICTORY = "victory"
 
-# Water simulation settings
-FLOOD_THRESHOLD = 0.7        # Water level that counts as flooding
-MAX_FLOOD_PERCENTAGE = 30    # Maximum allowable flood percentage
-MAX_TURNS = 10              # Maximum turns before assessment
-WATER_FLOW_RATE = 0.3       # Base rate of water flow between tiles
+# Weather and Flood settings
+MAX_TURNS = 20                  # More turns to give time for effects
+FLOOD_THRESHOLD = 0.7           # Water level that counts as flooding
+MAX_FLOOD_PERCENTAGE = 40       # More forgiving flood percentage
+WATER_FLOW_RATE = 0.2          # Slower water flow
 
 # Scoring settings
 SCORE_PER_RESOURCE = 10     # Points per resource saved
@@ -61,7 +62,7 @@ ASSESSMENT = "assessment"
 GAME_OVER = "game_over"
 
 # Resource settings
-STARTING_RESOURCES = 1000  # Starting budget for each level
+STARTING_RESOURCES = 10000  # Starting budget for each level
 
 # Tile types
 LAND = "land"
@@ -74,3 +75,7 @@ INFRASTRUCTURE_COSTS = {
     BARRIER: 100,
     VEGETATION: 50
 }
+INFRASTRUCTURE_EFFICIENCY = {    # How effective each type is
+    BARRIER: 0.8,              # Barriers block 80% of water
+    VEGETATION: 0.4            # Vegetation absorbs 40% of water
+} 
