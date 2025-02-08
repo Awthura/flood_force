@@ -1,4 +1,5 @@
 import pygame as pg
+import os
 from settings import *
 
 class UI:
@@ -7,6 +8,53 @@ class UI:
         self.font_big = pg.font.Font(None, 64)
         self.font_med = pg.font.Font(None, 32)
         self.font_small = pg.font.Font(None, 24)
+        # Load start screen
+        try:
+            original_image = pg.image.load(os.path.join("resources", "start_screen.png")).convert_alpha()
+            
+            # Calculate scaling while preserving aspect ratio
+            image_ratio = original_image.get_width() / original_image.get_height()
+            screen_ratio = WIDTH / HEIGHT
+            
+            if screen_ratio > image_ratio:
+                # Screen is wider than image - fit to height
+                new_height = HEIGHT
+                new_width = int(HEIGHT * image_ratio)
+            else:
+                # Screen is taller than image - fit to width
+                new_width = WIDTH
+                new_height = int(WIDTH / image_ratio)
+                
+            self.start_screen = pg.transform.scale(original_image, (new_width, new_height))
+            
+            # Calculate position to center the image
+            self.start_screen_x = (WIDTH - new_width) // 2
+            self.start_screen_y = (HEIGHT - new_height) // 2
+            
+        except Exception as e:
+            print(f"Failed to load start screen image: {e}")
+            self.start_screen = None
+            self.start_screen_x = 0
+            self.start_screen_y = 0
+
+    def draw_menu(self):
+        """Draw the main menu screen"""
+        # Fill background with black
+        self.game.screen.fill(BLACK)
+        
+        if self.start_screen:
+            # Draw the custom start screen image centered
+            self.game.screen.blit(self.start_screen, (self.start_screen_x, self.start_screen_y))
+        else:
+            # Fallback to text-based menu if image fails to load
+            title = self.font_big.render("FLOOD FORCE", True, WHITE)
+            title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 3))
+            self.game.screen.blit(title, title_rect)
+
+        # Always show the start instruction
+        start_text = self.font_med.render("Press SPACE to Start", True, WHITE)
+        start_rect = start_text.get_rect(center=(WIDTH // 2, HEIGHT * 4 // 5))
+        self.game.screen.blit(start_text, start_rect)
 
     def draw(self):
         """Draw the appropriate UI elements based on game state"""
@@ -21,25 +69,17 @@ class UI:
         elif current_state == VICTORY:
             self.draw_victory()
 
-    def draw_menu(self):
-        """Draw the main menu screen"""
-        title = self.font_big.render("FLOOD FORCE", True, WHITE)
-        title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-        self.game.screen.blit(title, title_rect)
-
-        start_text = self.font_med.render("Press SPACE to Start", True, WHITE)
-        start_rect = start_text.get_rect(center=(WIDTH // 2, HEIGHT * 2 // 3))
-        self.game.screen.blit(start_text, start_rect)
-
     def draw_game_ui(self):
         """Draw the in-game UI elements"""
-        # Resources display
+        # Resources display on right side
         resource_text = self.font_med.render(f"Budget: ${self.game.resources}", True, WHITE)
-        self.game.screen.blit(resource_text, (10, 10))
+        text_width = resource_text.get_width()
+        self.game.screen.blit(resource_text, (WIDTH - text_width - 20, 10))  # 20px padding from right edge
 
         # Current phase
         phase_text = self.font_med.render(f"Phase: {self.game.state.title()}", True, WHITE)
-        self.game.screen.blit(phase_text, (10, 50))
+        phase_width = phase_text.get_width()
+        self.game.screen.blit(phase_text, (WIDTH - phase_width - 20, 50))  # Below resource text
 
         # Show controls during planning phase
         if self.game.state == PLANNING:
@@ -54,9 +94,10 @@ class UI:
             "R - Remove",
             "SPACE - Start Storm"
         ]
+        # Keep controls panel on right side
         for i, text in enumerate(controls_text):
             help_text = self.font_small.render(text, True, WHITE)
-            self.game.screen.blit(help_text, (WIDTH - 200, 10 + i * 30))
+            self.game.screen.blit(help_text, (WIDTH - 200, 90 + i * 30))  # Start below phase text
 
     def draw_game_over(self):
         """Draw the game over screen"""

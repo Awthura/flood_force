@@ -35,10 +35,12 @@ class UIElement(pg.sprite.Sprite):
 class ToolBar:
     def __init__(self, game):
         self.game = game
+        # Position tools at bottom with more spacing
+        button_y = HEIGHT - 100  # Move up a bit from bottom
         self.tools = [
-            Tool(game, 10, HEIGHT - 60, BARRIER, "Barrier Wall (B)", 100),
-            Tool(game, 120, HEIGHT - 60, VEGETATION, "Vegetation (V)", 50),
-            Tool(game, 230, HEIGHT - 60, "remove", "Remove (R)", 0),
+            Tool(game, 20, button_y, BARRIER, "Barrier Wall (B)", 100),
+            Tool(game, 220, button_y, VEGETATION, "Vegetation (V)", 50),
+            Tool(game, 420, button_y, "remove", "Remove (R)", 0),
         ]
         self.selected_tool = None
         self.create_tool_buttons()
@@ -87,10 +89,9 @@ class Tool(pg.sprite.Sprite):
         self.name = name
         self.cost = cost
         self.selected = False
-        print(f"Created tool: {tool_type}")  # Debug print
         
-        # Create tool button
-        self.image = pg.Surface((100, 50))
+        # Create larger tool button
+        self.image = pg.Surface((180, 80))  # Increased size
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.update_appearance()
@@ -98,7 +99,6 @@ class Tool(pg.sprite.Sprite):
     def select(self):
         self.selected = True
         self.update_appearance()
-        print(f"Selected tool: {self.tool_type}")  # Debug print
 
     def deselect(self):
         self.selected = False
@@ -109,17 +109,20 @@ class Tool(pg.sprite.Sprite):
         color = (100, 100, 255) if self.selected else (70, 70, 70)
         self.image.fill(color)
         
-        # Draw button text
-        font = pg.font.Font(None, 24)
-        text = font.render(f"{self.name}", True, (255, 255, 255))
-        cost_text = font.render(f"${self.cost}", True, (255, 255, 255))
+        # Draw button text with larger fonts
+        name_font = pg.font.Font(None, 36)  # Bigger font for name
+        cost_font = pg.font.Font(None, 32)  # Slightly smaller for cost
         
-        # Center text
-        text_rect = text.get_rect(centerx=self.image.get_width()//2, top=5)
-        cost_rect = cost_text.get_rect(centerx=self.image.get_width()//2, bottom=45)
-        
+        # Draw name text
+        text = name_font.render(f"{self.name}", True, (255, 255, 255))
+        text_rect = text.get_rect(centerx=self.image.get_width()//2, top=15)
         self.image.blit(text, text_rect)
+        
+        # Draw cost text if applicable
         if self.cost > 0:
+            cost_text = cost_font.render(f"${self.cost}", True, (255, 255, 255))
+            cost_rect = cost_text.get_rect(centerx=self.image.get_width()//2, 
+                                         bottom=self.image.get_height()-10)
             self.image.blit(cost_text, cost_rect)
 
     def update(self):

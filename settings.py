@@ -3,7 +3,7 @@ TITLE = "Flood Force"
 WIDTH = 1024
 HEIGHT = 768
 FPS = 60
-TILESIZE = 64
+TILESIZE = 80
 
 # Colors
 WATER_BLUE = (65, 105, 225)
@@ -62,7 +62,7 @@ ASSESSMENT = "assessment"
 GAME_OVER = "game_over"
 
 # Resource settings
-STARTING_RESOURCES = 1000  # Starting budget for each level
+STARTING_RESOURCES = 300  # Starting budget for each level
 
 # Tile types
 LAND = "land"
