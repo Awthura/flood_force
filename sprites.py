@@ -23,6 +23,7 @@ class Tile(pg.sprite.Sprite):
         self.initialize_tile()
 
     def initialize_tile(self):
+        """Initialize tile appearance and properties"""
         if self.tile_type == LAND:
             self.image.fill(GRASS_GREEN)
             self.water_level = 0.0
@@ -31,13 +32,20 @@ class Tile(pg.sprite.Sprite):
             self.image.fill(WATER_BLUE)
             self.water_level = 1.0
             self.elevation = 0
+        elif self.tile_type == RIVER_BANK:
+            self.image.fill((139, 69, 19))  # Brown color for river bank
+            self.water_level = 0.0
+            self.elevation = 0.5
 
     def update_appearance(self):
+        """Update tile appearance based on current state"""
         # Base appearance
         if self.tile_type == WATER:
             self.image.fill(WATER_BLUE)
         elif self.tile_type == LAND:
             self.image.fill(GRASS_GREEN)
+        elif self.tile_type == RIVER_BANK:
+            self.image.fill((139, 69, 19))
         
         # Draw house if present
         if self.is_house:
@@ -47,20 +55,11 @@ class Tile(pg.sprite.Sprite):
             roof_points = [(5, 20), (TILESIZE//2, 5), (TILESIZE-5, 20)]
             pg.draw.polygon(self.image, (165, 42, 42), roof_points)
         
-        # Water level
-        if self.water_level > 0:
-            water_height = int(TILESIZE * self.water_level)
-            water_rect = pg.Rect(0, TILESIZE - water_height, TILESIZE, water_height)
-            water_surface = pg.Surface((TILESIZE, water_height), pg.SRCALPHA)
-            water_color = (*WATER_BLUE, int(255 * self.water_level))
-            water_surface.fill(water_color)
-            self.image.blit(water_surface, water_rect)
-        
-        # Infrastructure highlight
+        # Show infrastructure
         if self.has_infrastructure:
             pg.draw.rect(self.image, (100, 100, 100), self.rect.inflate(-10, -10), 2)
         
-        # Selection highlight
+        # Show selection highlight
         if self.highlighted:
             highlight_surf = pg.Surface((TILESIZE, TILESIZE), pg.SRCALPHA)
             pg.draw.rect(highlight_surf, (255, 255, 255, 100), highlight_surf.get_rect())

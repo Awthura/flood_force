@@ -202,14 +202,32 @@ class MouseController:
                 self.last_placed = current_tile
 
     def can_place_infrastructure(self, tile, tool_type):
+        """Determine if infrastructure can be placed on a given tile.
+        
+        The rules are:
+        - Barriers can only be placed on river bank tiles
+        - Vegetation can be placed on both land and river bank tiles
+        - Cannot place anything on house tiles or existing infrastructure
+        - Must have sufficient resources
+        """
         if tool_type == "remove":
             return tile.has_infrastructure
         
-        return (
-            tile.tile_type == LAND and
-            not tile.has_infrastructure and
-            self.game.resources >= INFRASTRUCTURE_COSTS[tool_type]
-        )
+        # Check if we have enough resources first
+        if self.game.resources < INFRASTRUCTURE_COSTS[tool_type]:
+            return False
+            
+        # Check if tile is already occupied
+        if tile.has_infrastructure or tile.is_house:
+            return False
+            
+        # Apply specific placement rules for each type
+        if tool_type == BARRIER:
+            return tile.tile_type == RIVER_BANK  # Barriers only on river banks
+        elif tool_type == VEGETATION:
+            return tile.tile_type in [LAND, RIVER_BANK]  # Trees on both land and river banks
+        
+        return False
 
     def place_infrastructure(self, tile, tool_type):
         if tool_type == "remove":

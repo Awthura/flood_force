@@ -4,11 +4,7 @@ from settings import *
 
 class WaterSimulation:
     def __init__(self, game, grid):
-        """Initialize water simulation with game and grid references.
-        
-        The simulation manages water flow from the river (located at 1/3 of grid width)
-        eastward, applying protection rules from barriers and vegetation.
-        """
+        """Initialize water simulation with game and grid references."""
         self.game = game
         self.grid = grid
         
@@ -30,80 +26,112 @@ class WaterSimulation:
     def simulate_rain(self):
         """Add water from rainfall and check for flooding."""
         current_weather = self.weather_phases[self.current_phase]
-        river_x = self.grid.width // 3  # Calculate river position
-        
-        for y in range(self.grid.height):
-            for x in range(river_x + 1, self.grid.width):  # Start right of river
-                tile = self.grid.tiles[y][x]
-                
-                if not self.is_protected(tile):
-                    # Apply rain effect
-                    rain_amount = current_weather['rain']
-                    tile.water_level = min(1.0, tile.water_level + rain_amount)
-                    
-                    # Check for flooding
-                    if tile.water_level >= FLOOD_THRESHOLD and tile.tile_type == LAND:
-                        tile.was_land = True
-                        tile.tile_type = WATER
-                        print(f"Tile at ({x}, {y}) flooded by rain")
-                    
-                    tile.update_appearance()
-
-    def simulate_water_flow(self):
-        """Simulate water flowing from west to east, starting from the river."""
         river_x = self.grid.width // 3
         
         for y in range(self.grid.height):
-            water_level = 1.0  # Start with full water at river
-            
-            for x in range(river_x + 1, self.grid.width):
+            # Process tiles right of the river
+            for x in range(river_x + 2, self.grid.width):
                 tile = self.grid.tiles[y][x]
-                
-                if self.is_protected(tile):
-                    # Protected tiles become/stay dry
+                if not self.is_protected(tile, "right"):
+                    self.apply_rain(tile, current_weather['rain'])
+            
+            # Process tiles left of the river
+            for x in range(river_x - 2, -1, -1):
+                tile = self.grid.tiles[y][x]
+                if not self.is_protected(tile, "left"):
+                    self.apply_rain(tile, current_weather['rain'])
+
+    def apply_rain(self, tile, rain_amount):
+        """Apply rain effects to a single tile."""
+        if tile.tile_type == WATER and not hasattr(tile, 'was_land'):
+            return  # Skip original river tiles
+            
+        tile.water_level = min(1.0, tile.water_level + rain_amount)
+        if tile.water_level >= FLOOD_THRESHOLD and tile.tile_type == LAND:
+            tile.was_land = True
+            tile.tile_type = WATER
+            print(f"Tile at ({tile.x}, {tile.y}) flooded by rain")
+        tile.update_appearance()
+
+    def simulate_water_flow(self):
+        """Simulate water flowing from river in both directions."""
+        river_x = self.grid.width // 3
+        
+        for y in range(self.grid.height):
+            # Simulate rightward flow
+            water_level = 1.0
+            for x in range(river_x + 2, self.grid.width):
+                tile = self.grid.tiles[y][x]
+                if self.is_protected(tile, "right"):
                     water_level = 0.0
                     if tile.tile_type == WATER and hasattr(tile, 'was_land'):
                         tile.tile_type = LAND
                         tile.water_level = 0.0
-                        print(f"Protected tile at ({x}, {y}) restored to land")
                 else:
-                    # Unprotected tiles receive water flow
                     tile.water_level = water_level
-                    water_level *= 0.9  # Water level gradually decreases
-                    
                     if tile.water_level >= FLOOD_THRESHOLD and tile.tile_type == LAND:
                         tile.was_land = True
                         tile.tile_type = WATER
-                        print(f"Tile at ({x}, {y}) flooded by water flow")
                 
                 tile.update_appearance()
+                water_level *= 0.95  # Slightly reduced decay rate
+            
+            # Simulate leftward flow (similar logic)
+            water_level = 1.0
+            for x in range(river_x - 2, -1, -1):
+                tile = self.grid.tiles[y][x]
+                if self.is_protected(tile, "left"):
+                    water_level = 0.0
+                    if tile.tile_type == WATER and hasattr(tile, 'was_land'):
+                        tile.tile_type = LAND
+                        tile.water_level = 0.0
+                else:
+                    tile.water_level = water_level
+                    if tile.water_level >= FLOOD_THRESHOLD and tile.tile_type == LAND:
+                        tile.was_land = True
+                        tile.tile_type = WATER
+                
+                tile.update_appearance()
+                water_level *= 0.95  # Consistent decay rate
 
-    def is_protected(self, tile):
-        """Check if a tile is protected by barriers or vegetation.
+    def is_protected(self, tile, direction):
+        """Check if a tile is protected from flooding."""
+        def has_vegetation(check_tile):
+            """Helper to check if a tile has vegetation."""
+            if check_tile and check_tile.has_infrastructure:
+                infra = next((sprite for sprite in self.game.infrastructure 
+                            if sprite.tile == check_tile), None)
+                return infra and infra.infra_type == VEGETATION
+            return False
         
-        A tile is protected if:
-        1. There is a barrier directly to its left
-        2. There are two consecutive vegetation tiles to its left
-        """
-        # Check for barrier protection
-        left_tile = self.grid.get_tile(tile.x - 1, tile.y)
-        if left_tile and left_tile.has_infrastructure:
-            left_infra = next((sprite for sprite in self.game.infrastructure 
-                             if sprite.tile == left_tile), None)
-            if left_infra and left_infra.infra_type == BARRIER:
-                return True
+        def has_barrier(check_tile):
+            """Helper to check if a tile has a barrier."""
+            if check_tile and check_tile.has_infrastructure:
+                infra = next((sprite for sprite in self.game.infrastructure 
+                            if sprite.tile == check_tile), None)
+                return infra and infra.infra_type == BARRIER
+            return False
+
+        # Determine which tiles to check based on flow direction
+        if direction == "right":
+            check_x = tile.x - 1
+            far_check_x = tile.x - 2
+        else:
+            check_x = tile.x + 1
+            far_check_x = tile.x + 2
+
+        # Check for barrier protection first
+        adjacent_tile = self.grid.get_tile(check_x, tile.y)
+        if adjacent_tile and adjacent_tile.tile_type == RIVER_BANK and has_barrier(adjacent_tile):
+            return True
 
         # Check for consecutive vegetation protection
-        if left_tile and left_tile.has_infrastructure:
-            far_left_tile = self.grid.get_tile(tile.x - 2, tile.y)
-            if far_left_tile and far_left_tile.has_infrastructure:
-                left_infra = next((sprite for sprite in self.game.infrastructure 
-                                 if sprite.tile == left_tile), None)
-                far_left_infra = next((sprite for sprite in self.game.infrastructure 
-                                     if sprite.tile == far_left_tile), None)
-                if (left_infra and left_infra.infra_type == VEGETATION and 
-                    far_left_infra and far_left_infra.infra_type == VEGETATION):
-                    return True
+        adjacent_tile = self.grid.get_tile(check_x, tile.y)
+        far_tile = self.grid.get_tile(far_check_x, tile.y)
+        
+        if has_vegetation(adjacent_tile) and has_vegetation(far_tile):
+            # All tiles beyond consecutive vegetation are protected
+            return True
         
         return False
 

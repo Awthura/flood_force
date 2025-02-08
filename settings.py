@@ -31,7 +31,7 @@ VICTORY = "victory"
 # Weather and Flood settings
 MAX_TURNS = 20                  # More turns to give time for effects
 FLOOD_THRESHOLD = 0.7           # Water level that counts as flooding
-MAX_FLOOD_PERCENTAGE = 40       # More forgiving flood percentage
+MAX_FLOOD_PERCENTAGE = 50       # More forgiving flood percentage
 WATER_FLOW_RATE = 0.2          # Slower water flow
 
 # Scoring settings
@@ -62,13 +62,14 @@ ASSESSMENT = "assessment"
 GAME_OVER = "game_over"
 
 # Resource settings
-STARTING_RESOURCES = 10000  # Starting budget for each level
+STARTING_RESOURCES = 1000  # Starting budget for each level
 
 # Tile types
 LAND = "land"
 WATER = "water"
 BARRIER = "barrier"
 VEGETATION = "vegetation"
+RIVER_BANK = "river_bank"
 
 # Infrastructure costs
 INFRASTRUCTURE_COSTS = {

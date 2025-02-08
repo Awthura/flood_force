@@ -13,15 +13,19 @@ class Grid:
         self.initialize_grid()
 
     def initialize_grid(self):
-        """Create initial grid layout with default tiles"""
-        # Create basic terrain layout
+        """Create initial grid layout with river and river banks in the middle"""
+        river_x = self.width // 3  # River position
+        
         for y in range(self.height):
             for x in range(self.width):
-                # Example: Create a river running through the middle
-                if self.width // 3 <= x <= self.width // 3 + 1:
-                    tile_type = WATER
+                # First determine tile type
+                if x == river_x or x == river_x + 1:
+                    tile_type = WATER  # River tiles
+                elif x == river_x - 1 or x == river_x + 2:
+                    tile_type = RIVER_BANK  # River bank tiles
                 else:
-                    tile_type = LAND
+                    tile_type = LAND  # Regular land tiles
+                
                 self.create_tile(x, y, tile_type)
 
     def create_tile(self, x, y, tile_type):
@@ -110,30 +114,53 @@ class Grid:
             self.tiles[y][x].update_water_level(level)
     
     def place_houses(self):
-        """Place 3 random houses on land tiles, avoiding river bank tiles.
+        """Place houses evenly on both sides of the river.
         
-        This method finds safe locations for houses by:
-        1. Identifying land tiles that are at least 2 tiles away from the river
-        2. Randomly selecting 3 of these tiles to place houses
-        3. Marking the selected tiles as house locations
+        Places a total of 3 houses:
+        - At least 1 house on each side of the river
+        - Third house randomly placed on either side
+        - Houses are placed only on land tiles (not river or river bank)
+        - Houses must be at least 2 tiles away from river banks
         """
-        available_tiles = []
-        river_x = self.width // 3  # River position is one-third from the left
+        river_x = self.width // 3
+        left_tiles = []
+        right_tiles = []
         
-        # Collect all valid land tiles that are at least 2 tiles away from the river
+        # Collect valid tiles on both sides
         for y in range(self.height):
-            for x in range(river_x + 2, self.width):  # Start 2 tiles right of river
-                tile = self.tiles[y][x]  # Fixed: Removed extra self.grid reference
+            # Left side tiles (excluding river bank area)
+            for x in range(0, river_x - 2):
+                tile = self.tiles[y][x]
                 if tile.tile_type == LAND:
-                    available_tiles.append(tile)
+                    left_tiles.append(tile)
+            
+            # Right side tiles (excluding river bank area)
+            for x in range(river_x + 3, self.width):
+                tile = self.tiles[y][x]
+                if tile.tile_type == LAND:
+                    right_tiles.append(tile)
         
-        # Only place houses if we have enough valid tiles
-        if len(available_tiles) >= 3:
-            house_tiles = random.sample(available_tiles, 3)
-            for tile in house_tiles:
-                tile.is_house = True
+        # Place houses if we have enough valid tiles
+        if len(left_tiles) > 0 and len(right_tiles) > 0:
+            # Place one house on each side
+            left_house = random.choice(left_tiles)
+            left_tiles.remove(left_house)
+            left_house.is_house = True
+            
+            right_house = random.choice(right_tiles)
+            right_tiles.remove(right_house)
+            right_house.is_house = True
+            
+            # Place third house randomly on either side
+            remaining_tiles = left_tiles + right_tiles
+            if remaining_tiles:
+                third_house = random.choice(remaining_tiles)
+                third_house.is_house = True
+            
+            # Update appearances
+            for tile in [left_house, right_house, third_house]:
                 tile.update_appearance()
-                print(f"Placed house at ({tile.x}, {tile.y})")  # Debug info
+                print(f"Placed house at ({tile.x}, {tile.y})")
         else:
             print("Warning: Not enough valid tiles for house placement")
 
