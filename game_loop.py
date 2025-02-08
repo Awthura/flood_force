@@ -6,42 +6,30 @@ class GameLoop:
         self.game = game
         self.level = 1
         self.score = 0
-        self.flood_percentage = 0
 
     def update(self):
+        """Update game state based on current phase."""
         if self.game.state == PLANNING:
             self.update_planning()
         elif self.game.state == WEATHER:
             self.update_weather()
 
     def update_planning(self):
+        """Update planning phase."""
         self.game.mouse_controller.update()
 
     def update_weather(self):
-        # Update water simulation
+        """Update weather phase."""
+        # Let water simulation handle everything during weather phase
         self.game.water_sim.update()
-        self.calculate_results()
-
-    def calculate_results(self):
-        flood_tiles = 0
-        total_land_tiles = 0
-        
-        for row in self.game.grid.tiles:
-            for tile in row:
-                if tile.tile_type == WATER and hasattr(tile, 'was_land'):
-                    flood_tiles += 1
-                if tile.tile_type == LAND or (tile.tile_type == WATER and hasattr(tile, 'was_land')):
-                    total_land_tiles += 1
-        
-        self.flood_percentage = (flood_tiles / total_land_tiles * 100) if total_land_tiles > 0 else 0
-        if self.flood_percentage > MAX_FLOOD_PERCENTAGE:
-            self.game.state = GAME_OVER
+        # Don't override water simulation's game state decisions
 
     def handle_input(self, key):
+        """Handle keyboard input."""
         if key == pg.K_SPACE:
             if self.game.state == MENU:
                 self.game.new()
             elif self.game.state == PLANNING:
-                self.game.state = WEATHER
+                self.game.state = WEATHER  # Start weather simulation
         elif key == pg.K_r and (self.game.state == GAME_OVER or self.game.state == VICTORY):
-            self.game.new()
+            self.game.new()  # Restart game

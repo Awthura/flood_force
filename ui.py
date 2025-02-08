@@ -3,21 +3,14 @@ from settings import *
 
 class UI:
     def __init__(self, game):
-        """Initialize the UI with a reference to the game instance
-        
-        Args:
-            game: The main Game instance that this UI will render for
-        """
         self.game = game
-        # Initialize fonts for different text sizes
-        self.font_big = pg.font.Font(None, 64)    # Large text for titles
-        self.font_med = pg.font.Font(None, 32)    # Medium text for important info
-        self.font_small = pg.font.Font(None, 24)  # Small text for details
+        self.font_big = pg.font.Font(None, 64)
+        self.font_med = pg.font.Font(None, 32)
+        self.font_small = pg.font.Font(None, 24)
 
     def draw(self):
         """Draw the appropriate UI elements based on game state"""
         current_state = self.game.state
-        print(f"Drawing UI for state: {current_state}")  # Debug info
         
         if current_state == MENU:
             self.draw_menu()
@@ -30,12 +23,10 @@ class UI:
 
     def draw_menu(self):
         """Draw the main menu screen"""
-        # Draw title
         title = self.font_big.render("FLOOD FORCE", True, WHITE)
         title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 3))
         self.game.screen.blit(title, title_rect)
 
-        # Draw start instructions
         start_text = self.font_med.render("Press SPACE to Start", True, WHITE)
         start_rect = start_text.get_rect(center=(WIDTH // 2, HEIGHT * 2 // 3))
         self.game.screen.blit(start_text, start_rect)
@@ -49,15 +40,6 @@ class UI:
         # Current phase
         phase_text = self.font_med.render(f"Phase: {self.game.state.title()}", True, WHITE)
         self.game.screen.blit(phase_text, (10, 50))
-
-        # Show flood percentage during weather phase
-        if self.game.state == WEATHER:
-            flood_text = self.font_med.render(
-                f"Flood: {self.game.flood_percentage:.1f}% (Max: {MAX_FLOOD_PERCENTAGE}%)", 
-                True, 
-                RED if self.game.flood_percentage > MAX_FLOOD_PERCENTAGE else WHITE
-            )
-            self.game.screen.blit(flood_text, (10, 90))
 
         # Show controls during planning phase
         if self.game.state == PLANNING:
@@ -78,19 +60,16 @@ class UI:
 
     def draw_game_over(self):
         """Draw the game over screen"""
-        self._draw_overlay()  # Darken the background
+        # Darken the background
+        overlay = pg.Surface((WIDTH, HEIGHT))
+        overlay.fill((0, 0, 0))
+        overlay.set_alpha(128)
+        self.game.screen.blit(overlay, (0, 0))
         
         # Game Over message
         title = self.font_big.render("GAME OVER", True, RED)
         title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 3))
         self.game.screen.blit(title, title_rect)
-
-        # Show flood percentage
-        flood_text = self.font_med.render(
-            f"Flood Percentage: {self.game.flood_percentage:.1f}%", True, WHITE
-        )
-        flood_rect = flood_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-        self.game.screen.blit(flood_text, flood_rect)
 
         # Restart instruction
         restart_text = self.font_med.render("Press R to Restart", True, WHITE)
@@ -99,32 +78,23 @@ class UI:
 
     def draw_victory(self):
         """Draw the victory screen"""
-        self._draw_overlay()  # Darken the background
+        # Darken the background
+        overlay = pg.Surface((WIDTH, HEIGHT))
+        overlay.fill((0, 0, 0))
+        overlay.set_alpha(128)
+        self.game.screen.blit(overlay, (0, 0))
         
         # Victory message
         title = self.font_big.render("VICTORY!", True, GREEN)
         title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 3))
         self.game.screen.blit(title, title_rect)
 
-        # Show statistics
-        stats = [
-            f"Houses Protected!",
-            f"Flood Percentage: {self.game.flood_percentage:.1f}%",
-            f"Resources Left: ${self.game.resources}"
-        ]
-        for i, stat in enumerate(stats):
-            text = self.font_med.render(stat, True, WHITE)
-            rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + i * 40))
-            self.game.screen.blit(text, rect)
+        # Resources display
+        resources_text = self.font_med.render(f"Resources Left: ${self.game.resources}", True, WHITE)
+        resources_rect = resources_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        self.game.screen.blit(resources_text, resources_rect)
 
         # Continue instruction
         continue_text = self.font_med.render("Press R to Play Again", True, WHITE)
         continue_rect = continue_text.get_rect(center=(WIDTH // 2, HEIGHT * 3 // 4))
         self.game.screen.blit(continue_text, continue_rect)
-
-    def _draw_overlay(self):
-        """Helper method to draw a semi-transparent overlay"""
-        overlay = pg.Surface((WIDTH, HEIGHT))
-        overlay.fill((0, 0, 0))
-        overlay.set_alpha(128)
-        self.game.screen.blit(overlay, (0, 0))
