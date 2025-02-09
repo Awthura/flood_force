@@ -62,7 +62,7 @@ ASSESSMENT = "assessment"
 GAME_OVER = "game_over"
 
 # Resource settings
-STARTING_RESOURCES = 300  # Starting budget for each level
+STARTING_RESOURCES = 1000  # Starting budget for each level
 
 # Tile types
 LAND = "land"
