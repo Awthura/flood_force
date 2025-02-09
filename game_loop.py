@@ -31,5 +31,3 @@ class GameLoop:
                 self.game.new()
             elif self.game.state == PLANNING:
                 self.game.state = WEATHER  # Start weather simulation
-        elif key == pg.K_r and (self.game.state == GAME_OVER or self.game.state == VICTORY):
-            self.game.new()  # Restart game

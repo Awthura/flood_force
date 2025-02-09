@@ -61,7 +61,8 @@ class UI:
             "1 - Tutorial (Easier)",
             "2 - Easy",
             "3 - Normal",
-            "4 - Hard"
+            "4 - Hard",
+            "Q - Quit Game"
         ]
         
         for i, text in enumerate(difficulty_text):
@@ -129,10 +130,18 @@ class UI:
         title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 3))
         self.game.screen.blit(title, title_rect)
 
-        # Restart instruction
-        restart_text = self.font_med.render("Press R to Restart", True, WHITE)
-        restart_rect = restart_text.get_rect(center=(WIDTH // 2, HEIGHT * 2 // 3))
-        self.game.screen.blit(restart_text, restart_rect)
+        # Game over instructions
+        instructions = [
+            "M - Main Menu",
+            "Q - Quit Game"
+        ]
+        
+        for i, text in enumerate(instructions):
+            instruction = self.font_med.render(text, True, WHITE)
+            instruction_rect = instruction.get_rect(
+                center=(WIDTH // 2, HEIGHT // 2 + i * 50)
+            )
+            self.game.screen.blit(instruction, instruction_rect)
 
     def draw_victory(self):
         """Draw the victory screen"""
@@ -149,10 +158,18 @@ class UI:
 
         # Resources display
         resources_text = self.font_med.render(f"Resources Left: ${self.game.resources}", True, WHITE)
-        resources_rect = resources_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        resources_rect = resources_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 50))
         self.game.screen.blit(resources_text, resources_rect)
 
-        # Continue instruction
-        continue_text = self.font_med.render("Press R to Play Again", True, WHITE)
-        continue_rect = continue_text.get_rect(center=(WIDTH // 2, HEIGHT * 3 // 4))
-        self.game.screen.blit(continue_text, continue_rect)
+        # Victory instructions
+        instructions = [
+            "M - Main Menu", 
+            "Q - Quit Game"
+        ]
+        
+        for i, text in enumerate(instructions):
+            instruction = self.font_med.render(text, True, WHITE)
+            instruction_rect = instruction.get_rect(
+                center=(WIDTH // 2, HEIGHT // 2 + 50 + i * 50)
+            )
+            self.game.screen.blit(instruction, instruction_rect)

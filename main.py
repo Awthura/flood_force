@@ -36,7 +36,7 @@ class Game:
 
         self.rain_effect = RainEffect(self)
         self.water_overlay = WaterOverlay(self)
-
+        self.current_difficulty = None
 
     def run(self):
         print("Game running. State:", self.state)  # Debug print
@@ -50,6 +50,12 @@ class Game:
         """Initialize a new game/level"""
         print(f"Starting new game at difficulty level {difficulty_level}")
         
+        # If no difficulty level is specified, use the last selected or default to 2
+        if difficulty_level is None:
+            difficulty_level = self.current_difficulty if self.current_difficulty is not None else 2
+        
+        # Explicitly set the current difficulty
+        self.current_difficulty = difficulty_level
         level_config = DIFFICULTY_LEVELS[difficulty_level]
         
         # Update global constants dynamically
@@ -138,30 +144,48 @@ class Game:
 
     def handle_keypress(self, key):
         """Handle keyboard input"""
+        # Quit game option on main menu
+        if self.state == MENU and key == pg.K_q:
+            self.running = False
+            return
+
         # Let game loop handle state transitions
         self.game_loop.handle_input(key)
         
-        # Level selection during menu
         if self.state == MENU:
             if key == pg.K_1:
+                self.current_difficulty = 1
                 self.new(1)  # Tutorial
             elif key == pg.K_2:
+                self.current_difficulty = 2
                 self.new(2)  # Easy
             elif key == pg.K_3:
+                self.current_difficulty = 3
                 self.new(3)  # Normal
             elif key == pg.K_4:
+                self.current_difficulty = 4
                 self.new(4)  # Hard
+        
+        # Game over/victory screen controls
+        if self.state in [GAME_OVER, VICTORY]:
+            if key == pg.K_m:
+                # Return to main menu
+                self.state = MENU
+                self.all_sprites.empty()
+            elif key == pg.K_q:
+                # Quit the game
+                self.running = False
         
         # Handle tool selection in planning phase
         if self.state == PLANNING:
             if key == pg.K_b:  # 'b' key
-                print("B key pressed - selecting barrier")  # Debug print
+                print("B key pressed - selecting barrier")
                 self.mouse_controller.toolbar.select_tool(BARRIER)
             elif key == pg.K_v:  # 'v' key
-                print("V key pressed - selecting vegetation")  # Debug print
+                print("V key pressed - selecting vegetation")
                 self.mouse_controller.toolbar.select_tool(VEGETATION)
             elif key == pg.K_r:  # 'r' key
-                print("R key pressed - selecting remove")  # Debug print
+                print("R key pressed - selecting remove")
                 self.mouse_controller.toolbar.select_tool("remove")
 
     def quit(self):
