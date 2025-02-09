@@ -1,9 +1,9 @@
 # Essential game settings
 TITLE = "Flood Force"
-WIDTH = 1024
+WIDTH = 1024  # Keep original window size
 HEIGHT = 768
 FPS = 60
-TILESIZE = 80
+TILESIZE = 40
 
 # Colors
 WATER_BLUE = (65, 105, 225)
@@ -24,8 +24,8 @@ UI_HIGHLIGHT = (100, 100, 255)
 UI_WARNING = RED
 
 # Grid settings
-GRID_WIDTH = 10
-GRID_HEIGHT = 8
+GRID_WIDTH = 20
+GRID_HEIGHT = 16
 VICTORY = "victory"
 
 # Weather and Flood settings

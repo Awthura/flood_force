@@ -106,7 +106,18 @@ class Game:
         
         # Draw infrastructure health bars
         for sprite in self.infrastructure:
-            InfrastructureIndicator(sprite).draw(self.screen)
+            # You'll want to check if this is a tree acting as a barrier
+            is_barrier_tree = (
+                sprite.infra_type == VEGETATION and 
+                self.water_sim.check_tree_barrier(sprite.tile)
+            )
+            
+            indicator = InfrastructureIndicator(sprite)
+            if is_barrier_tree:
+                # Override the color method to always return GRAY
+                indicator.get_health_color = lambda health: GRAY
+            
+            indicator.draw(self.screen)
         
         # Draw rain effect on top
         self.rain_effect.draw(self.screen)

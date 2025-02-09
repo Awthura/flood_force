@@ -1,40 +1,78 @@
 import pygame as pg
 from settings import *
 from sprites import Tile
+import math
 import random
 
 class Grid:
     def __init__(self, game, width, height):
         self.game = game
-        self.width = width  # Number of tiles wide
-        self.height = height  # Number of tiles high
+        self.width = width
+        self.height = height
         self.tiles = [[None for x in range(width)] for y in range(height)]
-        self.tile_dict = {}  # For quick position to tile lookup
+        self.tile_dict = {}
+        self.base_river_x = self.width // 2 - 1  # Center the river
+        self.river_path = self.generate_river_path()
         self.initialize_grid()
 
-    def initialize_grid(self):
-        """Create initial grid layout with river and river banks in the middle"""
-        river_x = self.width // 3  # River position
+    def generate_river_path(self):
+        """Generate the curved river path starting from center."""
+        path = []
+        current_x = self.base_river_x
+        meandering_chance = 0.6
         
         for y in range(self.height):
-            for x in range(self.width):
-                # First determine tile type
-                if x == river_x or x == river_x + 1:
-                    tile_type = WATER  # River tiles
-                elif x == river_x - 1 or x == river_x + 2:
-                    tile_type = RIVER_BANK  # River bank tiles
-                else:
-                    tile_type = LAND  # Regular land tiles
-                
-                self.create_tile(x, y, tile_type)
+            if y > 0:
+                if random.random() < meandering_chance:
+                    max_shift = 1
+                    shift = random.randint(-max_shift, max_shift)
+                    # Ensure river stays within reasonable bounds from center
+                    current_x = max(self.width//4, min(3*self.width//4 - 4, current_x + shift))
+            
+            path.append(current_x)
+        
+        # Smooth the path
+        smoothed_path = path.copy()
+        for y in range(1, self.height - 1):
+            smoothed_path[y] = (path[y-1] + path[y] + path[y+1]) // 3
+        
+        return smoothed_path
 
+    def initialize_grid(self):
+        """Create initial grid layout with meandering river."""
+        # First create all land tiles
+        for y in range(self.height):
+            for x in range(self.width):
+                self.create_tile(x, y, LAND)
+        
+        # Then create river and banks using the pre-generated path
+        for y in range(self.height):
+            river_center = self.river_path[y]
+            
+            # Create river (2 tiles wide)
+            for x in [river_center, river_center + 1]:
+                self.tiles[y][x].tile_type = WATER
+            
+            # Create river banks
+            self.tiles[y][river_center - 1].tile_type = RIVER_BANK  # Left bank
+            self.tiles[y][river_center + 2].tile_type = RIVER_BANK  # Right bank
+            
+            # Update appearances
+            for x in [river_center - 1, river_center, river_center + 1, river_center + 2]:
+                self.tiles[y][x].initialize_tile()
+                self.tiles[y][x].update_appearance()
+
+    def get_river_center(self, y):
+        """Get the river center for a given row."""
+        return self.river_path[y]
+        
     def create_tile(self, x, y, tile_type):
         """Create a new tile at the specified grid position"""
         tile = Tile(self.game, x, y, tile_type)
         self.tiles[y][x] = tile
         self.tile_dict[(x, y)] = tile
         return tile
-
+    
     def get_tile(self, x, y):
         """Get tile at grid coordinates"""
         if 0 <= x < self.width and 0 <= y < self.height:
