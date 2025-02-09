@@ -64,6 +64,6 @@ class SoundManager:
         """Stop all music playback"""
         pg.mixer.music.stop()
     
-    def set_volume(self, volume):
+    def set_volume(self, volume=0.5):
         """Set music volume (0.0 to 1.0)"""
         pg.mixer.music.set_volume(volume)

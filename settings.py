@@ -89,11 +89,11 @@ DIFFICULTY_LEVELS = {
         'house_count': 3,
     },
     3: {  # Normal
-        'starting_resources': 1200,
+        'starting_resources': 1400,
         'house_count': 6,
     },
     4: {  # Hard
-        'starting_resources': 1200,
+        'starting_resources': 1600,
         'house_count': 8,
     }
 }
