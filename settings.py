@@ -61,9 +61,6 @@ WEATHER = "weather"
 ASSESSMENT = "assessment"
 GAME_OVER = "game_over"
 
-# Resource settings
-STARTING_RESOURCES = 1000  # Starting budget for each level
-
 # Tile types
 LAND = "land"
 WATER = "water"
@@ -80,3 +77,26 @@ INFRASTRUCTURE_EFFICIENCY = {    # How effective each type is
     BARRIER: 0.8,              # Barriers block 80% of water
     VEGETATION: 0.4            # Vegetation absorbs 40% of water
 } 
+
+# Difficulty Level Settings
+DIFFICULTY_LEVELS = {
+    1: {  # Tutorial
+        'starting_resources': 800,
+        'house_count': 2,
+    },
+    2: {  # Easy
+        'starting_resources': 900,
+        'house_count': 3,
+    },
+    3: {  # Normal
+        'starting_resources': 1200,
+        'house_count': 6,
+    },
+    4: {  # Hard
+        'starting_resources': 1200,
+        'house_count': 8,
+    }
+}
+
+# Default to level 2 (easy)
+STARTING_RESOURCES = DIFFICULTY_LEVELS[2]['starting_resources']

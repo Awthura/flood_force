@@ -151,56 +151,51 @@ class Grid:
         for (x, y), level in new_water_levels.items():
             self.tiles[y][x].update_water_level(level)
     
-    def place_houses(self):
-        """Place houses evenly on both sides of the river.
+    def place_houses(self, house_count=3):
+        """Place houses based on difficulty level configuration."""
+        # Collect valid tiles
+        valid_tiles_left = []
+        valid_tiles_right = []
         
-        Places a total of 3 houses:
-        - At least 1 house on each side of the river
-        - Third house randomly placed on either side
-        - Houses are placed only on land tiles (not river or river bank)
-        - Houses must be at least 2 tiles away from river banks
-        """
-        river_x = self.width // 3
-        left_tiles = []
-        right_tiles = []
+        river_center = self.width // 2
         
-        # Collect valid tiles on both sides
         for y in range(self.height):
             # Left side tiles (excluding river bank area)
-            for x in range(0, river_x - 2):
+            for x in range(0, river_center - 2):
                 tile = self.tiles[y][x]
                 if tile.tile_type == LAND:
-                    left_tiles.append(tile)
+                    valid_tiles_left.append(tile)
             
             # Right side tiles (excluding river bank area)
-            for x in range(river_x + 3, self.width):
+            for x in range(river_center + 3, self.width):
                 tile = self.tiles[y][x]
                 if tile.tile_type == LAND:
-                    right_tiles.append(tile)
+                    valid_tiles_right.append(tile)
         
-        # Place houses if we have enough valid tiles
-        if len(left_tiles) > 0 and len(right_tiles) > 0:
-            # Place one house on each side
-            left_house = random.choice(left_tiles)
-            left_tiles.remove(left_house)
-            left_house.is_house = True
+        # Shuffle to randomize placement
+        random.shuffle(valid_tiles_left)
+        random.shuffle(valid_tiles_right)
+        
+        # Place houses ensuring some are on both sides if possible
+        houses_placed = 0
+        
+        # Try to place houses on different sides
+        while houses_placed < house_count and (valid_tiles_left or valid_tiles_right):
+            # Attempt to place on left side
+            if valid_tiles_left and houses_placed < house_count:
+                house_tile = valid_tiles_left.pop()
+                house_tile.is_house = True
+                house_tile.update_appearance()
+                houses_placed += 1
             
-            right_house = random.choice(right_tiles)
-            right_tiles.remove(right_house)
-            right_house.is_house = True
-            
-            # Place third house randomly on either side
-            remaining_tiles = left_tiles + right_tiles
-            if remaining_tiles:
-                third_house = random.choice(remaining_tiles)
-                third_house.is_house = True
-            
-            # Update appearances
-            for tile in [left_house, right_house, third_house]:
-                tile.update_appearance()
-                print(f"Placed house at ({tile.x}, {tile.y})")
-        else:
-            print("Warning: Not enough valid tiles for house placement")
+            # Attempt to place on right side
+            if valid_tiles_right and houses_placed < house_count:
+                house_tile = valid_tiles_right.pop()
+                house_tile.is_house = True
+                house_tile.update_appearance()
+                houses_placed += 1
+        
+        print(f"Placed {houses_placed} houses")
 
     def apply_infrastructure_effects(self):
         """Update grid based on infrastructure effects"""

@@ -46,18 +46,27 @@ class Game:
             self.update()
             self.draw()
 
-    def new(self):
+    def new(self, difficulty_level=2):
         """Initialize a new game/level"""
-        print("Starting new game...")  # Debug print
+        print(f"Starting new game at difficulty level {difficulty_level}")
+        
+        level_config = DIFFICULTY_LEVELS[difficulty_level]
+        
+        # Update global constants dynamically
+        global STARTING_RESOURCES
+        STARTING_RESOURCES = level_config['starting_resources']
+
         # Clear existing sprites
         self.all_sprites.empty()
         self.tiles.empty()
         self.infrastructure.empty()
         self.ui_elements.empty()
         
-        # Create grid and initialize houses
+        # Create grid with current difficulty settings
         self.grid = Grid(self, GRID_WIDTH, GRID_HEIGHT)
-        self.grid.place_houses()  # Place houses right after grid creation
+        
+        # Place houses based on difficulty level
+        self.grid.place_houses(level_config['house_count'])
         
         # Initialize other game components
         self.water_sim = WaterSimulation(self, self.grid)
@@ -67,7 +76,7 @@ class Game:
         # Reinitialize mouse controller and toolbar
         self.mouse_controller = MouseController(self)
         
-        print(f"Game state changed to: {self.state}")  # Debug print
+        print(f"Game state changed to: {self.state}")
 
     def update(self):
         """Update game state"""
@@ -131,6 +140,17 @@ class Game:
         """Handle keyboard input"""
         # Let game loop handle state transitions
         self.game_loop.handle_input(key)
+        
+        # Level selection during menu
+        if self.state == MENU:
+            if key == pg.K_1:
+                self.new(1)  # Tutorial
+            elif key == pg.K_2:
+                self.new(2)  # Easy
+            elif key == pg.K_3:
+                self.new(3)  # Normal
+            elif key == pg.K_4:
+                self.new(4)  # Hard
         
         # Handle tool selection in planning phase
         if self.state == PLANNING:

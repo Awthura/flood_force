@@ -2,6 +2,10 @@ import pygame as pg
 import os
 from settings import *
 
+import pygame as pg
+import os
+from settings import *
+
 class UI:
     def __init__(self, game):
         self.game = game
@@ -51,10 +55,23 @@ class UI:
             title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 3))
             self.game.screen.blit(title, title_rect)
 
-        # Always show the start instruction
-        start_text = self.font_med.render("Press SPACE to Start", True, WHITE)
-        start_rect = start_text.get_rect(center=(WIDTH // 2, HEIGHT * 4 // 5))
-        self.game.screen.blit(start_text, start_rect)
+        # Difficulty selection instructions
+        difficulty_text = [
+            "Select Difficulty:",
+            "1 - Tutorial (Easier)",
+            "2 - Easy",
+            "3 - Normal",
+            "4 - Hard"
+        ]
+        
+        for i, text in enumerate(difficulty_text):
+            color = WHITE if i > 0 else YELLOW  # Highlight the first text
+            diff_render = self.font_med.render(text, True, color)
+            diff_rect = diff_render.get_rect(
+                center=(WIDTH // 2, 
+                        HEIGHT * 2 // 3 + i * 40)
+            )
+            self.game.screen.blit(diff_render, diff_rect)
 
     def draw(self):
         """Draw the appropriate UI elements based on game state"""
