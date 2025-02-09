@@ -21,30 +21,37 @@ class WaterSimulation:
             self.flood_direction(y, range(self.river_x - 1, -1, -1), "left")
 
     def flood_direction(self, y, x_range, direction):
-        """Handle flooding in ladder pattern with barriers."""
-        steps_from_river = 0  # Track distance from the river
+        """Handle flooding in ladder pattern with updated vegetation rules."""
+        steps_from_river = 0
+        consecutive_vegetation = 0  # Track consecutive vegetation tiles
         
         for x in x_range:
-            # Check for barriers
+            # Check for barriers first
             if self.has_barrier(x, y, direction):
-                return  # Stop flooding this row if a barrier is encountered
+                return  # Still stop at barriers
             
             tile = self.grid.tiles[y][x]
             
-            # Skip river tiles and check for vegetation
+            # Skip original river tiles
             if tile.tile_type == WATER and not hasattr(tile, 'was_land'):
                 continue
+            
+            # Check for vegetation
             if self.has_tree(tile):
-                return  # Stop flooding at vegetation
+                consecutive_vegetation += 1
+                if consecutive_vegetation >= 2:
+                    return  # Stop only at 2 consecutive vegetation tiles
+                continue  # Skip vertical spread but continue flooding
+            else:
+                consecutive_vegetation = 0  # Reset counter if not vegetation
             
             # Only process land and river bank tiles
             if tile.tile_type in [LAND, RIVER_BANK]:
                 # Flood the current tile
                 self.flood_tile(tile)
                 
-                # If this is the first step, flood adjacent tiles on the same row
+                # If this is the first step, flood adjacent tiles
                 if steps_from_river == 0:
-                    # Flood the tile to the left or right of the initial tile
                     adjacent_x = x - 1 if direction == "right" else x + 1
                     if 0 <= adjacent_x < self.grid.width:
                         adjacent_tile = self.grid.tiles[y][adjacent_x]
@@ -52,7 +59,8 @@ class WaterSimulation:
                             self.flood_tile(adjacent_tile)
                 
                 # Apply vertical spread for subsequent steps
-                if steps_from_river > 0:
+                # Only if current tile is not vegetation
+                if steps_from_river > 0 and not self.has_tree(tile):
                     self.apply_vertical_spread(x, y, steps_from_river)
                 
                 steps_from_river += 1
