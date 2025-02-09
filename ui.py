@@ -12,6 +12,7 @@ class UI:
         self.font_big = pg.font.Font(None, 64)
         self.font_med = pg.font.Font(None, 32)
         self.font_small = pg.font.Font(None, 24)
+        self.menu_buttons = []
         # Load start screen
         try:
             original_image = pg.image.load(os.path.join("resources", "start_screen.png")).convert_alpha()
@@ -40,39 +41,65 @@ class UI:
             self.start_screen = None
             self.start_screen_x = 0
             self.start_screen_y = 0
-
+        
     def draw_menu(self):
-        """Draw the main menu screen"""
+        """Draw the main menu screen with clickable buttons"""
         # Fill background with black
         self.game.screen.fill(BLACK)
         
         if self.start_screen:
-            # Draw the custom start screen image centered
             self.game.screen.blit(self.start_screen, (self.start_screen_x, self.start_screen_y))
-        else:
-            # Fallback to text-based menu if image fails to load
-            title = self.font_big.render("FLOOD FORCE", True, WHITE)
-            title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-            self.game.screen.blit(title, title_rect)
-
-        # Difficulty selection instructions
-        difficulty_text = [
-            "Select Difficulty:",
-            "1 - Tutorial (Easier)",
-            "2 - Easy",
-            "3 - Normal",
-            "4 - Hard",
-            "Q - Quit Game"
+        
+        # Define button dimensions
+        button_width = 200
+        button_height = 40
+        button_spacing = 50
+        start_y = HEIGHT * 2 // 3
+        
+        # Clear previous buttons
+        self.menu_buttons = []
+        
+        # Create and draw buttons
+        difficulty_options = [
+            ("Tutorial", 1),
+            ("Easy", 2),
+            ("Normal", 3),
+            ("Hard", 4),
+            ("Quit Game", "quit")
         ]
         
-        for i, text in enumerate(difficulty_text):
-            color = WHITE if i > 0 else YELLOW  # Highlight the first text
-            diff_render = self.font_med.render(text, True, color)
-            diff_rect = diff_render.get_rect(
-                center=(WIDTH // 2, 
-                        HEIGHT * 2 // 3 + i * 40)
+        for i, (text, value) in enumerate(difficulty_options):
+            button_rect = pg.Rect(
+                (WIDTH - button_width) // 2,
+                start_y + i * button_spacing,
+                button_width,
+                button_height
             )
-            self.game.screen.blit(diff_render, diff_rect)
+            
+            # Store button data for click detection
+            self.menu_buttons.append((button_rect, value))
+            
+            # Draw button
+            pg.draw.rect(self.game.screen, UI_GRAY, button_rect)
+            if button_rect.collidepoint(pg.mouse.get_pos()):
+                pg.draw.rect(self.game.screen, UI_HIGHLIGHT, button_rect, 3)
+            
+            # Draw text
+            text_surf = self.font_med.render(text, True, WHITE)
+            text_rect = text_surf.get_rect(center=button_rect.center)
+            self.game.screen.blit(text_surf, text_rect)
+
+    def handle_menu_click(self, pos):
+        """Handle mouse clicks on menu buttons"""
+        for button_rect, value in self.menu_buttons:
+            if button_rect.collidepoint(pos):
+                if value == "quit":
+                    self.game.running = False
+                else:
+                    self.game.current_difficulty = value
+                    self.game.new(value)
+                return True
+        return False
 
     def draw(self):
         """Draw the appropriate UI elements based on game state"""

@@ -9,6 +9,7 @@ from ui import UI
 from game_loop import GameLoop
 from controller import *
 from sound_manager import SoundManager
+import asyncio
 
 class Game:
     def __init__(self):
@@ -106,13 +107,20 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
+            
+            if event.type == pg.MOUSEBUTTONDOWN:
+                # Handle menu clicks
+                if self.state == MENU:
+                    self.ui.handle_menu_click(event.pos)
+                elif self.state == PLANNING:
+                    self.mouse_controller.handle_click(event.pos, event.button)
+            
+            if event.type == pg.MOUSEBUTTONUP and self.state == PLANNING:
+                self.mouse_controller.handle_release()
+            
             if event.type == pg.KEYDOWN:
                 print(f"Key pressed: {event.key}")  # Debug print
                 self.handle_keypress(event.key)
-            if event.type == pg.MOUSEBUTTONDOWN and self.state == PLANNING:
-                self.mouse_controller.handle_click(event.pos, event.button)
-            if event.type == pg.MOUSEBUTTONUP and self.state == PLANNING:
-                self.mouse_controller.handle_release()
 
     def draw(self):
         self.screen.fill(BLACK)  # Clear screen
@@ -201,9 +209,10 @@ class Game:
         pg.quit()
         sys.exit()
 
-def main():
+async def main():
     game = Game()
     game.run()
+    await asyncio.sleep(0)
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())

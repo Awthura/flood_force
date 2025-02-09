@@ -1,0 +1,21 @@
+{
+    "app_name": "flood_force",
+    "title": "Flood Force",
+    "download_size": "20MB",
+    "requirements": [
+        "pygame>=2.5.2"
+    ],
+    "cache": false,
+    "compression_level": 3,
+    "serve": {
+        "app_path": "",
+        "browser_cache": false,
+        "route_prefix": "",
+        "cors": true
+    },
+    "canvas": {
+        "width": 1024,
+        "height": 768,
+        "resizable": false
+    }
+}

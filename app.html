@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flood Force</title>
+    <meta name="description" content="A game about managing flood defenses">
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #canvas {
+            width: 1024px !important;  /* Match your WIDTH setting */
+            height: 768px !important;  /* Match your HEIGHT setting */
+            display: block !important;
+            margin: 0 auto !important;
+        }
+        .game-container {
+            width: 1024px;
+            height: 768px;
+            position: relative;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="canvas"></canvas>
+    </div>
+</body>
+</html>
