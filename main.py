@@ -8,6 +8,7 @@ from weather_effects import *
 from ui import UI
 from game_loop import GameLoop
 from controller import *
+from sound_manager import SoundManager
 
 class Game:
     def __init__(self):
@@ -26,6 +27,9 @@ class Game:
         self.mouse_controller = MouseController(self)
         self.ui = UI(self)
         self.game_loop = GameLoop(self)
+        
+        # Initialize sound manager
+        self.sound_manager = SoundManager()
         
         # Initialize game attributes
         self.resources = STARTING_RESOURCES
@@ -86,6 +90,9 @@ class Game:
 
     def update(self):
         """Update game state"""
+        # Update music based on current game state
+        self.sound_manager.update_music(self.state)
+        
         self.game_loop.update()
         self.all_sprites.update()
         
@@ -189,6 +196,8 @@ class Game:
                 self.mouse_controller.toolbar.select_tool("remove")
 
     def quit(self):
+        """Clean up and quit the game"""
+        self.sound_manager.stop_music()
         pg.quit()
         sys.exit()
 
