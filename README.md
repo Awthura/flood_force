@@ -1,5 +1,5 @@
 # flood_force
-tiled based flood management game using just pygame
+Tile-based flood management game using just pygame
 
 
 # run the game locally
