@@ -15,7 +15,7 @@ class UI:
         self.menu_buttons = []
         # Load start screen
         try:
-            original_image = pg.image.load(os.path.join("resources", "start_screen.png")).convert_alpha()
+            original_image = pg.image.load(os.path.join("assets/resources", "start_screen.png")).convert_alpha()
             
             # Calculate scaling while preserving aspect ratio
             image_ratio = original_image.get_width() / original_image.get_height()

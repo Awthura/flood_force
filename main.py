@@ -43,13 +43,13 @@ class Game:
         self.water_overlay = WaterOverlay(self)
         self.current_difficulty = None
 
-    def run(self):
-        print("Game running. State:", self.state)  # Debug print
+    async def run(self):
         while self.running:
             self.dt = self.clock.tick(FPS) / 1000
             self.events()
             self.update()
             self.draw()
+            await asyncio.sleep(0)  # Yield control back to the event loop
 
     def new(self, difficulty_level=2):
         """Initialize a new game/level"""
@@ -211,8 +211,6 @@ class Game:
 
 async def main():
     game = Game()
-    game.run()
-    await asyncio.sleep(0)
+    await game.run()
 
-if __name__ == '__main__':
-    asyncio.run(main())
+asyncio.run(main())

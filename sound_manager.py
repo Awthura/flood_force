@@ -10,23 +10,23 @@ class SoundManager:
         
         # Set up music dictionaries for different game states
         self.menu_tracks = [
-            os.path.join("music", "main_menu_1.wav"),
-            os.path.join("music", "main_menu_2.wav")
+            os.path.join("assets/music", "main_menu_1.ogg"),
+            os.path.join("assets/music", "main_menu_2.ogg")
         ]
         
         self.gameplay_tracks = [
-            os.path.join("music", "gameplay_1.wav"),
-            os.path.join("music", "gameplay_2.wav")
+            os.path.join("assets/music", "gameplay_1.ogg"),
+            os.path.join("assets/music", "gameplay_2.ogg")
         ]
         
         self.victory_tracks = [
-            os.path.join("music", "victory.wav"),
-            os.path.join("music", "victory_2.wav")
+            os.path.join("assets/music", "victory.ogg"),
+            os.path.join("assets/music", "victory_2.ogg")
         ]
         
         self.game_over_tracks = [
-            os.path.join("music", "game_over_1.wav"),
-            os.path.join("music", "game_over_2.wav")
+            os.path.join("assets/music", "game_over_1.ogg"),
+            os.path.join("assets/music", "game_over_2.ogg")
         ]
         
         self.current_state = None

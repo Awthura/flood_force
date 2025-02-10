@@ -36,7 +36,7 @@ class Tile(pg.sprite.Sprite):
         }
         
         for tile_type, image_name in image_types.items():
-            image_path = os.path.join("resources", image_name)
+            image_path = os.path.join("assets/resources", image_name)
             try:
                 image = pg.image.load(image_path).convert_alpha()
                 images[tile_type] = pg.transform.scale(image, (TILESIZE, TILESIZE))
@@ -83,7 +83,7 @@ class Tile(pg.sprite.Sprite):
         # Add house if present
         if self.is_house:
             try:
-                house_image = pg.image.load(os.path.join("resources", "house.png")).convert_alpha()
+                house_image = pg.image.load(os.path.join("assets/resources", "house.png")).convert_alpha()
                 house_image = pg.transform.scale(house_image, (TILESIZE-10, TILESIZE-10))
                 self.image.blit(house_image, (5, 5))
             except:
@@ -132,7 +132,7 @@ class Infrastructure(pg.sprite.Sprite):
             image_name = "vegetation.png"
             
         try:
-            image = pg.image.load(os.path.join("resources", image_name)).convert_alpha()
+            image = pg.image.load(os.path.join("assets/resources", image_name)).convert_alpha()
             return pg.transform.scale(image, (TILESIZE, TILESIZE))
         except:
             surface = pg.Surface((TILESIZE, TILESIZE), pg.SRCALPHA)
